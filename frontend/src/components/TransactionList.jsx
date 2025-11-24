@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import client from "../api/client";
+import AuditList from "./AuditList";
 
 export default function TransactionList({ account }) {
   const [txns, setTxns] = useState([]);
-  const [form, setForm] = useState({ type: "CREDIT", amount: 0, description: "" });
+  const [form, setForm] = useState({ type: "CREDIT", amount: "0", description: "" });
   const [error, setError] = useState(null);
   const [balance, setBalance] = useState(null);
+  const [showAudits, setShowAudits] = useState(false);
 
   useEffect(() => {
     if (!account || account.id == null) return;
@@ -36,8 +38,9 @@ export default function TransactionList({ account }) {
       setError('No account selected');
       return;
     }
-    await client.post(`/transactions/post/${account.id}`, form);
-    setForm({ ...form, amount: 0, description: "" });
+    // send amount as string to avoid precision issues in JS
+    await client.post(`/transactions/post/${account.id}`, { ...form, amount: form.amount.toString() });
+    setForm({ ...form, amount: "0", description: "" });
     await refresh();
     // refresh balance after posting
     client.get(`/accounts/${account.id}/balance`)
@@ -50,6 +53,13 @@ export default function TransactionList({ account }) {
       <h2>Transactions – {account.accountNumber}</h2>
       <div>Balance: {balance != null ? balance : '—'}</div>
       {error && <div style={{ color: 'red' }}>{error}</div>}
+
+      <div style={{ marginBottom: 8 }}>
+        <button onClick={() => setShowAudits(s => !s)}>{showAudits ? 'Hide' : 'Show'} Audit Trail</button>
+      </div>
+
+      {showAudits && <AuditList entityType="ACCOUNT" entityId={String(account.id)} onClose={() => setShowAudits(false)} />}
+
       <ul className="list">
         {txns.map(t => (
           <li key={t.id}>
@@ -68,8 +78,9 @@ export default function TransactionList({ account }) {
         </select>
         <input
           type="number"
+          step="0.01"
           value={form.amount}
-          onChange={e => setForm({ ...form, amount: Number(e.target.value) })}
+          onChange={e => setForm({ ...form, amount: e.target.value })}
           placeholder="Amount"
         />
         <input
