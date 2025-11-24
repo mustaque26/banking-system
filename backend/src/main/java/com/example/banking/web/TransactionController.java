@@ -26,12 +26,24 @@ public class TransactionController {
                 .collect(Collectors.toList());
     }
 
-    public record PostTxnRequest(String type, BigDecimal amount, String description) {}
+    public static class PostTxnRequest { public String type; public BigDecimal amount; public String description; }
 
     @PostMapping("/post/{accountId}")
     public TransactionDto post(@PathVariable Long accountId,
                             @RequestBody PostTxnRequest req) {
-        Transaction t = service.post(accountId, req.type(), req.amount(), req.description());
+        Transaction t = service.create(accountId, req.type, req.amount, req.description);
+        return TransactionDto.from(t);
+    }
+
+    @PostMapping("/approve/{txnId}")
+    public TransactionDto approve(@PathVariable Long txnId) {
+        Transaction t = service.approve(txnId);
+        return TransactionDto.from(t);
+    }
+
+    @PostMapping("/reject/{txnId}")
+    public TransactionDto reject(@PathVariable Long txnId, @RequestBody(required = false) String reason) {
+        Transaction t = service.reject(txnId, reason);
         return TransactionDto.from(t);
     }
 }

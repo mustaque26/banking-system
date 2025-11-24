@@ -26,6 +26,12 @@ public class Transaction {
     private OffsetDateTime txnTime;
     private String description;
 
+    // lifecycle fields
+    private String status; // PENDING, APPROVED, REJECTED, POSTED
+    private BigDecimal charge;
+    private String complianceFlag; // e.g., AML, CTR
+    private Boolean suspicious;
+
     // explicit accessors
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -41,6 +47,14 @@ public class Transaction {
     public void setTxnTime(OffsetDateTime txnTime) { this.txnTime = txnTime; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public BigDecimal getCharge() { return charge; }
+    public void setCharge(BigDecimal charge) { this.charge = charge; }
+    public String getComplianceFlag() { return complianceFlag; }
+    public void setComplianceFlag(String complianceFlag) { this.complianceFlag = complianceFlag; }
+    public Boolean getSuspicious() { return suspicious; }
+    public void setSuspicious(Boolean suspicious) { this.suspicious = suspicious; }
 
     public static Transaction of(Account account, String type, BigDecimal amount, String description, String reference, OffsetDateTime txnTime) {
         Transaction t = new Transaction();
@@ -50,6 +64,10 @@ public class Transaction {
         t.setDescription(description);
         t.setReference(reference);
         t.setTxnTime(txnTime);
+        t.setStatus("PENDING");
+        t.setCharge(BigDecimal.ZERO);
+        t.setComplianceFlag(null);
+        t.setSuspicious(false);
         return t;
     }
 }
